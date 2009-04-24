@@ -1,0 +1,8 @@
+soundex_find_test:
+  adapter: mysql
+  database: soundex_find_test
+  username: root
+  password:
+  host: localhost
+
+

@@ -1,0 +1,136 @@
+= SoundexFind
+
+An ActiveRecord finder for auto-complete that returns phonetically similar
+results, such as 'Jeffery', 'Jefry', and 'Geoffry'.
+
+Uses ActiveRecord with_scope, and all ActiveRecord find options should work.
+
+Compatible with paginating_find, and hopefully most other well-behaved finder
+plugins.  If you find issues, please report them.
+
+== Description
+
+SoundexFind implements a modified Soundex algorithm suitable for auto-complete
+or search functions.  The default options optimize
+for misspelling or ambiguous spelling in a wide variety of situations.
+
+The options will also support a true Soundex, as well as many other configurations.
+
+The original soundex algorithm encodes text as the first letter, followed by
+digits (1-6), to a maximum of 3 digits, for a total of 4 characters in the encoded sequence.  
+
+To learn more about soundex: http://en.wikipedia.org/wiki/Soundex
+
+== Usage
+
+    soundex_find(find_params, :soundex => search_string)
+    
+
+== Examples
+
+    item_list = Item.soundex_find :all,
+                                    :conditions => {:city => "Seattle"},
+                                    :include => [:images],
+                                    :soundex => "jefry"
+
+
+== Setup
+
+=== Install plugin
+
+=== Create and run migration for soundex columns
+
+Each column enabled for soundex search needs a companion column with _soundex suffix.
+
+    add_column :items, :column_name_soundex, :string, :default => "", :limit => 20, :null => false
+
+
+=== Add to models
+Add soundex_columns to your model.
+
+   soundex_columns([:column_name], options)
+
+=== Options for soundex_columns:
+
+    :start => (true/false) default = false
+        If true, match start at beginning of string.
+    :end => (true/false) default = false
+        If true, match continues until end of string.
+        If :start and :end are both true, forces match of entire string.
+    :limit => (integer) default = nil
+        Limits the total number of soundex digits used in the match.
+    :strict => (true/false) default = false
+        Requires first character to be an exact match, regardless of soundex match.
+
+=== Restart your ruby server
+
+=== Either use migration or rake task to update soundex columns
+A rake task is a good idea since you will want to bulk update your soundex columns
+if you change :limit or :strict init options later.
+
+    Item.find(:all).each { |p| p.update_attribute :column_name_soundex, Item.soundex(p.column_name) }
+
+        
+== Examples
+        
+Default options attempt to match the compare string at any position in the reference 
+string, for the total length of the compare string.
+
+    soundex_columns( :column_1 )
+
+    # example encoding
+    Item.soundex("supernatural") => 2165364
+    
+    # example find
+    items => ["sue", "soup", "super", "supernatural"]
+    Item.soundex_find("zoop") => ["soup", "super", "supernatural"]
+    Item.soundex_find("pare") => ["super", "supernatural"]
+    
+
+True Soundex requires exact first letter, and matches from the beginning 
+to the end of the string or three soundex digits past the ifrst letter,
+whichever comes first.
+
+    soundex_columns( :column_1, 
+            {:start => true, :end => true, :limit => 3, :strict => true} )
+
+    # example encoding
+    Item.soundex("supernatural") => S165
+
+    # example find
+    items => ["sue", "soup", "super", "supernatural"]
+    Item.soundex_find("zoop") => []
+    Item.soundex_find("soopr") => ["super"]
+    
+Useful options for auto-complete are exact first letter, and any length
+of completion for the remainder of the string.
+
+    soundex_columns( :column_1, 
+            {:start => true, :strict => true} )
+            
+    # example encoding
+    Item.soundex("supernatural") => S165364
+
+    # example find
+    items => ["sue", "soup", "super", "supernatural"]
+    Item.soundex_find("zoop") => []
+    Item.soundex_find("soap") => ["soup", "super", "supernatural"]
+    
+
+== To do:
+  #TODO: support multiple columns, currently only one column per model supported
+  #TODO: Alternate language and charsets.  Currently optimized for English.
+
+
+== More about soundex:
+
+http://en.wikipedia.org/wiki/Soundex
+
+
+== Credits:
+
+SoundexFind was created by {Walt Gordon Jones}[mailto:waltjones@gmail.com]
+
+Copyright (c) 2009 Walt Gordon Jones, released under the MIT license.
+
+
