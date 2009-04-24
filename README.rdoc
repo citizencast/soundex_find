@@ -1,7 +1,8 @@
 = SoundexFind
 
-An ActiveRecord finder for auto-complete that returns phonetically similar
-results, such as 'Jeffery', 'Jefry', and 'Geoffry'.
+A drop=in replacement ActiveRecord finder for auto-complete that returns phonetically similar
+results, such as 'Jeffery', 'Jefry', and 'Geoffry'. Use with any autocompleter 
+or search form when phonetic matches or misspellings should be included.
 
 Uses ActiveRecord with_scope, and all ActiveRecord find options should work.
 
@@ -37,12 +38,15 @@ To learn more about soundex: http://en.wikipedia.org/wiki/Soundex
 == Setup
 
 === Install plugin
+    
+    script/plugin install git://github.com/waltjones/soundex_find.git
 
 === Create and run migration for soundex columns
 
 Each column enabled for soundex search needs a companion column with _soundex suffix.
 
-    add_column :items, :column_name_soundex, :string, :default => "", :limit => 20, :null => false
+    add_column :items, :column_name_soundex, :string, 
+        :default => "", :limit => 20, :null => false
 
 
 === Add to models
@@ -68,7 +72,9 @@ Add soundex_columns to your model.
 A rake task is a good idea since you will want to bulk update your soundex columns
 if you change :limit or :strict init options later.
 
-    Item.find(:all).each { |p| p.update_attribute :column_name_soundex, Item.soundex(p.column_name) }
+    Item.find(:all).each { |p| 
+        p.update_attribute :column_name_soundex, Item.soundex(p.column_name) 
+    }
 
         
 == Examples
