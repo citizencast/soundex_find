@@ -84,8 +84,8 @@ module WGJ #:nodoc:
     module InstanceMethods
 
       def update_soundex
-        eval("#{self.class}").sdx_columns.each {|c| 
-          eval("self.#{c}_soundex = #{self.class}.soundex(self.#{c})")
+        self.class.sdx_columns.each {|c|
+          self.send("#{c}_soundex=", self.class.soundex(self.send(c)))
         }
       end
       
